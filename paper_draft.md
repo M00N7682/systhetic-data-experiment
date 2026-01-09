@@ -67,22 +67,26 @@ $$\text{cKS} = \sum_{z} w_z \cdot \text{KS}(Y_{\text{real}}|Z=z, Y_{\text{synth}
 본 연구는 다음과 같이 T-cKS를 정의한다:
 
 #### Step 1: Tail Threshold 정의
+
 실제 데이터 기준으로 tail threshold를 정의한다:
 $$\tau_q = Q_q(Y_{\text{real}})$$
 
 여기서 $Q_q$는 $q$-분위수 함수이다 (예: $q = 0.95$).
 
 #### Step 2: Tail Subset 필터링
+
 각 조건 $z$에 대해 tail subset을 정의한다:
 $$Y_{\text{tail}}^z = \{y \in Y | Z = z \land y > \tau_q\}$$
 
 **중요**: 합성 데이터에도 **동일한 $\tau_q$**를 적용한다.
 
 #### Step 3: Tail-Conditional KS 계산
+
 각 조건에서 tail 분포 간 KS Distance를 계산한다:
 $$\text{T-KS}_z = \text{KS}(Y_{\text{real,tail}}^z, Y_{\text{synth,tail}}^z)$$
 
 #### Step 4: 가중 평균
+
 Tail 샘플 수로 가중 평균한다:
 $$\text{T-cKS} = \sum_{z} \frac{n_{\text{tail}}^z}{\sum_z n_{\text{tail}}^z} \cdot \text{T-KS}_z$$
 
@@ -101,40 +105,41 @@ $$\text{T-cKS} = \sum_{z} \frac{n_{\text{tail}}^z}{\sum_z n_{\text{tail}}^z} \cd
 
 **Allstate Claims Severity Dataset** (Kaggle)을 사용하였다.
 
-| 항목 | 값 |
-|------|-----|
-| 총 샘플 수 | 188,318 |
-| 손실 변수 (Y) | `loss` (연속형) |
+| 항목          | 값                             |
+| ------------- | ------------------------------ |
+| 총 샘플 수    | 188,318                        |
+| 손실 변수 (Y) | `loss` (연속형)                |
 | 조건 변수 (Z) | `cat79` (4개 범주: A, B, C, D) |
 
 #### 손실 분포 특성
 
-| 통계량 | 값 |
-|--------|-----|
-| 평균 | 3,037.34 |
-| 중앙값 | 2,115.57 |
-| 표준편차 | 2,904.09 |
-| 왜도 (Skewness) | 3.79 |
-| 첨도 (Kurtosis) | 48.08 |
-| 95% 분위수 | 8,508.54 |
-| 최대값 | 121,012.25 |
+| 통계량          | 값         |
+| --------------- | ---------- |
+| 평균            | 3,037.34   |
+| 중앙값          | 2,115.57   |
+| 표준편차        | 2,904.09   |
+| 왜도 (Skewness) | 3.79       |
+| 첨도 (Kurtosis) | 48.08      |
+| 95% 분위수      | 8,508.54   |
+| 최대값          | 121,012.25 |
 
 왜도 > 1, 첨도 > 3으로 **heavy-tailed 분포**임을 확인하였다.
 
 #### 조건별 분포 특성
 
-| 조건 (cat79) | 샘플 수 | 평균 손실 | Tail 샘플 (q=0.95) |
-|--------------|---------|-----------|-------------------|
-| A | 7,064 | 2,718 | 240 |
-| B | 152,929 | 2,470 | 2,905 |
-| C | 1,668 | 4,087 | 130 |
-| **D** | **26,657** | **6,312** | **6,141** |
+| 조건 (cat79) | 샘플 수    | 평균 손실 | Tail 샘플 (q=0.95) |
+| ------------ | ---------- | --------- | ------------------ |
+| A            | 7,064      | 2,718     | 240                |
+| B            | 152,929    | 2,470     | 2,905              |
+| C            | 1,668      | 4,087     | 130                |
+| **D**        | **26,657** | **6,312** | **6,141**          |
 
 조건 D는 평균 손실이 가장 높고, tail 영역 샘플도 가장 많아 **고위험군**으로 해석할 수 있다.
 
 ### 3.3 Failure Mode 설계
 
 #### 핵심 시나리오
+
 > "전체 분포는 유사하게 유지되면서, **특정 조건(D)의 극단 손실만 축소**된 상황"
 
 이는 합성 데이터 생성 과정에서 고위험군의 극단 손실이 과소 생성되는 실패 모드를 모사한다.
@@ -148,18 +153,19 @@ $$Y_{\text{new}} = \tau_q + (Y - \tau_q) \times \text{scale\_factor}$$
 - `scale_factor = 0.2`: tail의 80% 축소 (극단성 대폭 감소)
 
 이 방식의 장점:
+
 1. **Tail 샘플 수 유지**: 기존 winsorization과 달리 tail 영역의 샘플 수가 보존됨
 2. **분포 형태만 변경**: 전체 분포는 거의 유지되면서 tail의 극단성만 감소
 3. **현실적 시나리오**: 합성 데이터 생성 모델이 극단값을 과소 생성하는 상황을 모사
 
 ### 3.4 평가 지표
 
-| 지표 | 정의 | 비교 대상 |
-|------|------|----------|
-| mKS | 전체 Y 분포 비교 | 전체 |
-| cKS | 조건별 전체 Y 분포 비교 후 가중 평균 | 조건별 전체 |
-| T-cKS | 조건별 tail Y 분포 비교 후 가중 평균 | 조건별 tail |
-| T-cKS(D) | 조건 D의 tail 분포만 비교 | 왜곡 조건만 |
+| 지표     | 정의                                 | 비교 대상   |
+| -------- | ------------------------------------ | ----------- |
+| mKS      | 전체 Y 분포 비교                     | 전체        |
+| cKS      | 조건별 전체 Y 분포 비교 후 가중 평균 | 조건별 전체 |
+| T-cKS    | 조건별 tail Y 분포 비교 후 가중 평균 | 조건별 tail |
+| T-cKS(D) | 조건 D의 tail 분포만 비교            | 왜곡 조건만 |
 
 ---
 
@@ -169,12 +175,12 @@ $$Y_{\text{new}} = \tau_q + (Y - \tau_q) \times \text{scale\_factor}$$
 
 **표 1. Tail Scaling 강도별 평가 지표 비교 (q=0.95, 왜곡 대상: 조건 D)**
 
-| Scale Factor | mKS | cKS | T-cKS | T-cKS(D) |
-|--------------|-----|-----|-------|----------|
-| 1.0 (원본) | 0.0000 | 0.0000 | 0.0001 | 0.0002 |
-| 0.8 (20% 축소) | 0.0028 | 0.0028 | 0.0562 | 0.0861 |
-| 0.6 (40% 축소) | 0.0061 | 0.0061 | 0.1221 | 0.1873 |
-| 0.4 (60% 축소) | 0.0106 | 0.0106 | 0.2120 | 0.3250 |
+| Scale Factor       | mKS        | cKS        | T-cKS      | T-cKS(D)   |
+| ------------------ | ---------- | ---------- | ---------- | ---------- |
+| 1.0 (원본)         | 0.0000     | 0.0000     | 0.0001     | 0.0002     |
+| 0.8 (20% 축소)     | 0.0028     | 0.0028     | 0.0562     | 0.0861     |
+| 0.6 (40% 축소)     | 0.0061     | 0.0061     | 0.1221     | 0.1873     |
+| 0.4 (60% 축소)     | 0.0106     | 0.0106     | 0.2120     | 0.3250     |
 | **0.2 (80% 축소)** | **0.0172** | **0.0172** | **0.3441** | **0.5276** |
 
 ### 4.2 결과 분석
@@ -210,13 +216,13 @@ KS Distance
      │
 0.35 ┤                                    ●─── T-cKS
      │                              ●
-0.30 ┤                        
+0.30 ┤
      │                        ●
-0.25 ┤                  
+0.25 ┤
      │                  ●
-0.20 ┤            
+0.20 ┤
      │            ●
-0.15 ┤      
+0.15 ┤
      │      ●
 0.10 ┤
      │●
@@ -260,6 +266,7 @@ mKS와 cKS는 왜곡 강도가 증가해도 거의 변화가 없는 반면, T-cK
 본 연구는 보험 합성 데이터 평가에서 기존 분포 기반 지표의 한계를 분석하고, 조건부 극단 손실 보존을 평가하는 **Tail-Conditional KS Distance (T-cKS)**를 제안하였다.
 
 실험 결과, 조건부 극단 손실이 80% 축소된 상황에서:
+
 - 기존 지표(mKS, cKS)는 KS = 0.017 수준으로 왜곡을 거의 탐지하지 못함
 - 제안하는 T-cKS는 KS = 0.344로 **약 20배 높은 민감도**를 보임
 
@@ -269,13 +276,13 @@ mKS와 cKS는 왜곡 강도가 증가해도 거의 변화가 없는 반면, T-cK
 
 ## 참고문헌
 
-1. Kolmogorov, A. N. (1933). Sulla determinazione empirica di una legge di distribuzione. *Giornale dell'Istituto Italiano degli Attuari*, 4, 83-91.
+1. Kolmogorov, A. N. (1933). Sulla determinazione empirica di una legge di distribuzione. _Giornale dell'Istituto Italiano degli Attuari_, 4, 83-91.
 
-2. Smirnov, N. (1948). Table for estimating the goodness of fit of empirical distributions. *Annals of Mathematical Statistics*, 19(2), 279-281.
+2. Smirnov, N. (1948). Table for estimating the goodness of fit of empirical distributions. _Annals of Mathematical Statistics_, 19(2), 279-281.
 
-3. Embrechts, P., Klüppelberg, C., & Mikosch, T. (1997). *Modelling Extremal Events for Insurance and Finance*. Springer.
+3. Embrechts, P., Klüppelberg, C., & Mikosch, T. (1997). _Modelling Extremal Events for Insurance and Finance_. Springer.
 
-4. Jorion, P. (2007). *Value at Risk: The New Benchmark for Managing Financial Risk*. McGraw-Hill.
+4. Jorion, P. (2007). _Value at Risk: The New Benchmark for Managing Financial Risk_. McGraw-Hill.
 
 5. Allstate. (2016). Allstate Claims Severity. Kaggle Competition. https://www.kaggle.com/c/allstate-claims-severity
 
@@ -299,13 +306,12 @@ https://github.com/M00N7682/systhetic-data-experiment
 
 **표 C1. 조건별 KS Distance 상세 (scale=0.2)**
 
-| 조건 | Conditional KS | Tail-Conditional KS |
-|------|----------------|---------------------|
-| A | 0.0000 | 0.0000 |
-| B | 0.0000 | 0.0000 |
-| C | 0.0000 | 0.0000 |
-| **D (왜곡)** | **0.1843** | **0.5276** |
-| **가중 평균** | **0.0172** | **0.3441** |
+| 조건          | Conditional KS | Tail-Conditional KS |
+| ------------- | -------------- | ------------------- |
+| A             | 0.0000         | 0.0000              |
+| B             | 0.0000         | 0.0000              |
+| C             | 0.0000         | 0.0000              |
+| **D (왜곡)**  | **0.1843**     | **0.5276**          |
+| **가중 평균** | **0.0172**     | **0.3441**          |
 
 조건 D만 왜곡되었음에도 전체 가중 평균에서는 희석되어 cKS=0.0172로 나타났으나, T-cKS는 tail 영역에 집중하여 T-cKS=0.3441로 왜곡을 효과적으로 탐지하였다.
-
