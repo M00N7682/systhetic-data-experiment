@@ -22,9 +22,9 @@
 \title{Tail-Conditional KS Distance: \\
 보험 합성 데이터의 조건부 극단 손실 보존 평가를 위한 일관된 통계적 지표}
 
-\author{저자명 \\
-소속기관 \\
-\texttt{email@example.com}}
+\author{문덕룡 (Deok Lyong Moon) \\
+경희대학교 경영학과 \\
+\texttt{dfjk71@khu.ac.kr}}
 
 \date{}
 
@@ -261,8 +261,8 @@ Allstate Claims Severity Dataset (Kaggle)을 사용하였다.
 % 그림 2
 \begin{figure}[h]
     \centering
-    \fbox{\parbox{0.8\textwidth}{\centering (그림 2: 손실 분포 시각화 - (a) 전체 손실 히스토그램, (b) 로그 변환 분포, (c) 조건별 박스플롯)}}
-    \caption{손실 분포 시각화}
+    \includegraphics[width=0.9\textwidth]{results/figures/q_sensitivity_winsor.png}
+    \caption{Quantile 민감도 분석 (Winsorization, strength=0.8)}
     \label{fig:loss_dist}
 \end{figure}
 
@@ -281,8 +281,8 @@ Allstate Claims Severity Dataset (Kaggle)을 사용하였다.
 % 그림 3
 \begin{figure}[h]
     \centering
-    \fbox{\parbox{0.8\textwidth}{\centering (그림 3: Tail Scaling 전후 비교 - 원본과 scale=0.2 적용 후 조건 D의 tail 분포)}}
-    \caption{Tail Scaling 시각화}
+    \includegraphics[width=0.9\textwidth]{results/figures/metric_comparison_q0.9.png}
+    \caption{메트릭 비교 (q=0.90)}
     \label{fig:tail_scaling}
 \end{figure}
 
@@ -313,8 +313,8 @@ Scale Factor & mKS & cKS & T-cKS & T-cKS(D) \\
 % 그림 4
 \begin{figure}[h]
     \centering
-    \fbox{\parbox{0.8\textwidth}{\centering (그림 4: 왜곡 강도에 따른 평가 지표 변화 - x축: scale factor, y축: KS Distance, mKS/cKS vs T-cKS 비교)}}
-    \caption{왜곡 강도에 따른 평가 지표 변화}
+    \includegraphics[width=0.9\textwidth]{results/figures/metric_comparison_q0.95.png}
+    \caption{왜곡 강도에 따른 평가 지표 변화 (q=0.95)}
     \label{fig:main_plot}
 \end{figure}
 
@@ -361,8 +361,8 @@ C & 0.0000 & 0.0000 \\
 % 그림 5
 \begin{figure}[h]
     \centering
-    \fbox{\parbox{0.8\textwidth}{\centering (그림 5: 조건별 cKS vs T-cKS 막대 그래프 - 조건 D에서만 T-cKS가 높음)}}
-    \caption{조건별 비교}
+    \includegraphics[width=0.9\textwidth]{results/figures/detection_comparison_q095.png}
+    \caption{탐지 능력 비교: T-cKS vs 기존 지표 (q=0.95)}
     \label{fig:condition_compare}
 \end{figure}
 
@@ -388,8 +388,8 @@ C & 0.0000 & 0.0000 \\
 % 그림 6
 \begin{figure}[h]
     \centering
-    \fbox{\parbox{0.8\textwidth}{\centering (그림 6: 샘플 크기와 T-cKS 추정 정확도 - 샘플이 많아질수록 추정이 안정화)}}
-    \caption{샘플 크기와 T-cKS 추정 정확도}
+    \includegraphics[width=0.9\textwidth]{results/figures/heatmap_tcks_winsorization.png}
+    \caption{T-cKS 히트맵: Quantile vs 왜곡 강도 (Winsorization 방법)}
     \label{fig:consistency}
 \end{figure}
 
