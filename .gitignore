@@ -19,8 +19,9 @@ __pycache__/
 *.swp
 *.swo
 
-# Results (can be regenerated)
-results/
+# Results CSV (can be regenerated)
+results/*.csv
+results/*.json
 
 # OS
 .DS_Store
