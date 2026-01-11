@@ -140,6 +140,37 @@ Allstate Claims Severity 데이터셋을 활용한 통제된 실험 결과, 조�
 여기서 $w_z$는 조건 $z$의 샘플 비율이다.
 \end{definition}
 
+\subsubsection{지표 비교 요약}
+
+표~\ref{tab:metric_comparison}은 세 가지 평가 지표의 특성을 비교한다.
+
+\begin{table}[h]
+\centering
+\caption{mKS, cKS, T-cKS 비교 요약}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+특성 & mKS & cKS & \textbf{T-cKS (제안)} \\
+\midrule
+평가 범위 & 전체 분포 & 조건별 분포 & 조건별 Tail 분포 \\
+조건 변수 고려 & $\times$ & $\checkmark$ & $\checkmark$ \\
+Tail 영역 집중 & $\times$ & $\times$ & $\checkmark$ \\
+\midrule
+\multicolumn{4}{l}{\textit{탐지 능력 (본 연구 실험 결과)}} \\
+\midrule
+80\% Tail 축소 시 & 0.017 & 0.017 & \textbf{0.344} \\
+탐지 민감도 & 1x & 1x & \textbf{20x} \\
+\midrule
+\multicolumn{4}{l}{\textit{실제 합성 모델 평가 (TVAE, $q=0.95$)}} \\
+\midrule
+지표 값 & 0.014 & 0.021 & \textbf{0.075} \\
+숨겨진 Tail 왜곡 탐지 & $\times$ & $\times$ & $\checkmark$ \\
+\bottomrule
+\end{tabular}
+\label{tab:metric_comparison}
+\end{table}
+
+mKS와 cKS는 전체 분포 또는 조건별 분포의 유사성을 측정하지만, tail 영역의 왜곡에는 둔감하다. 반면 T-cKS는 조건별 tail 분포에 집중하여 보험 리스크 관점에서 중요한 극단 손실 왜곡을 효과적으로 탐지한다.
+
 \subsection{T-cKS 정의}
 
 \begin{definition}[Tail-Conditional KS Distance]
