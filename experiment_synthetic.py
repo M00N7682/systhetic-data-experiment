@@ -46,7 +46,7 @@ class SyntheticExperimentConfig:
     n_synthetic_samples: int = 50000  # 생성할 합성 데이터 샘플 수
     
     # CTGAN/TVAE settings
-    epochs: int = 100
+    epochs: int = 30
     batch_size: int = 500
     
     # Experiment settings

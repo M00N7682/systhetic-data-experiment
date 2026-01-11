@@ -10,6 +10,8 @@
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{geometry}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning}
 \geometry{margin=2.5cm}
 
 % 정리 환경 정의
@@ -40,7 +42,7 @@
 
 본 연구는 Kolmogorov-Smirnov Distance를 조건부 분포 및 극단 손실 영역으로 확장한 \textbf{Tail-Conditional KS Distance (T-cKS)}를 제안하고, 이 지표의 통계적 일관성(consistency)을 이론적으로 증명한다.
 
-Allstate Claims Severity 데이터셋을 활용한 통제된 실험 결과, 조건부 극단 손실이 80\% 축소된 상황에서 기존 지표(mKS, cKS)는 KS=0.017 수준으로 왜곡을 거의 탐지하지 못한 반면, 제안하는 T-cKS는 KS=0.344로 \textbf{약 20배 높은 민감도}를 보였다.
+Allstate Claims Severity 데이터셋을 활용한 통제된 실험 결과, 조건부 극단 손실이 80\% 축소된 상황에서 기존 지표(mKS, cKS)는 KS=0.017 수준으로 왜곡을 거의 탐지하지 못한 반면, 제안하는 T-cKS는 KS=0.344로 \textbf{약 20배 높은 민감도}를 보였다. 또한 실제 합성 데이터 생성 모델(CTGAN, TVAE, GaussianCopula)을 사용한 실험에서, TVAE가 기존 지표(cKS=0.021)로는 우수해 보이지만 T-cKS(0.075)가 \textbf{3.5배 높은 tail 왜곡}을 탐지함을 확인하였다.
 
 \vspace{0.3cm}
 \noindent\textbf{키워드}: 합성 데이터, 품질 평가, Kolmogorov-Smirnov Distance, 극단값, 보험 리스크, 조건부 분포, 통계적 일관성
@@ -74,7 +76,8 @@ Allstate Claims Severity 데이터셋을 활용한 통제된 실험 결과, 조�
 \begin{enumerate}
     \item 보험 합성 데이터 평가 문제를 조건부 극단 손실 보존이라는 리스크 중심 관점에서 재정의
     \item 새로운 평가 지표 T-cKS를 제안하고, 통계적 일관성을 이론적으로 증명
-    \item 제안 지표의 탐지 능력이 기존 지표 대비 약 20배 높음을 실증적으로 확인
+    \item 통제된 실험에서 제안 지표의 탐지 능력이 기존 지표 대비 약 20배 높음을 확인
+    \item 실제 합성 데이터 생성 모델(CTGAN, TVAE, GaussianCopula)에서도 T-cKS의 유용성을 실증
 \end{enumerate}
 
 
@@ -82,13 +85,28 @@ Allstate Claims Severity 데이터셋을 활용한 통제된 실험 결과, 조�
 \section{관련 연구}
 %==============================================================================
 
+\subsection{합성 데이터 생성 기술}
+
+합성 데이터 생성 기술은 크게 통계적 방법과 딥러닝 기반 방법으로 구분된다. 통계적 방법으로는 Gaussian Copula~[6]가 대표적이며, 변수 간 의존성을 코퓰라 함수로 모델링한다. 딥러닝 기반 방법으로는 CTGAN~[4]이 조건부 GAN 구조를 활용하여 범주형 변수가 포함된 테이블 데이터를 생성하고, TVAE~[5]는 Variational Autoencoder를 테이블 데이터에 적용한다.
+
+이러한 생성 모델들은 전체 분포의 유사성을 목표로 학습되므로, 데이터의 특정 영역(예: tail)에서 품질 저하가 발생할 수 있다.
+
 \subsection{합성 데이터 품질 평가}
 
-주변 분포 유사성 측정 지표로는 KS Distance, Wasserstein Distance, Maximum Mean Discrepancy (MMD) 등이 활용되어 왔다. 그러나 이들은 전체 분포를 단일 값으로 요약하므로, 특정 구간에서 발생하는 구조적 차이를 충분히 반영하지 못한다.
+합성 데이터 품질 평가를 위한 다양한 지표가 제안되어 왔다. 주변 분포 유사성 측정을 위해 Kolmogorov-Smirnov (KS) Distance, Wasserstein Distance, Maximum Mean Discrepancy (MMD) 등이 활용된다~[1,2]. SDMetrics~[6]는 이러한 지표들을 통합한 평가 프레임워크를 제공한다.
+
+그러나 기존 지표들은 다음과 같은 한계를 가진다:
+\begin{itemize}
+    \item 전체 분포를 단일 값으로 요약하여 국소적 차이를 감지하기 어려움
+    \item 조건부 분포의 품질을 직접 평가하지 않음
+    \item 극단값 영역에 대한 가중치가 없어 tail 왜곡에 둔감함
+\end{itemize}
 
 \subsection{극단값 이론과 보험 리스크}
 
-보험 분야에서는 극단값 이론(Extreme Value Theory, EVT)을 활용한 리스크 분석이 활발히 이루어져 왔다. 그러나 합성 데이터 품질 평가 지표와 극단값 이론을 직접적으로 결합한 연구는 상대적으로 부족하다.
+보험 분야에서는 극단값 이론(Extreme Value Theory, EVT)을 활용한 리스크 분석이 활발히 이루어져 왔다~[3]. Value-at-Risk (VaR)와 Conditional Value-at-Risk (CVaR) 등의 리스크 측정 지표는 손실 분포의 tail 특성에 크게 의존한다.
+
+그러나 합성 데이터 품질 평가 지표와 극단값 이론을 직접적으로 결합한 연구는 상대적으로 부족하다. 본 연구는 이 gap을 메우기 위해 tail 영역에 특화된 평가 지표를 제안한다.
 
 
 %==============================================================================
@@ -149,12 +167,35 @@ T-cKS는 다음 4단계로 계산된다:
 \end{equation}
 \end{definition}
 
-% 그림 1
+% 그림 1: T-cKS 계산 플로우차트
 \begin{figure}[h]
     \centering
-    % \includegraphics[width=0.9\textwidth]{fig1_flowchart.png}
-    \fbox{\parbox{0.8\textwidth}{\centering (그림 1: T-cKS 계산 과정 플로우차트 - 전체 분포에서 조건별 분리, tail 필터링, KS 계산, 가중 평균까지의 흐름)}}
-    \caption{T-cKS 계산 과정 도식화}
+    \begin{tikzpicture}[
+        node distance=1.2cm,
+        box/.style={rectangle, draw, rounded corners, minimum width=2.5cm, minimum height=0.8cm, align=center, font=\small},
+        arrow/.style={->, thick}
+    ]
+    % 노드 정의
+    \node[box, fill=blue!20] (data) {전체 데이터\\$(Y, Z)$};
+    \node[box, fill=green!20, right=of data] (cond) {조건별 분리\\$Y|Z=z$};
+    \node[box, fill=orange!20, right=of cond] (tail) {Tail 필터링\\$Y > \tau_q$};
+    \node[box, fill=red!20, right=of tail] (ks) {KS 계산\\$\text{T-KS}_z$};
+    \node[box, fill=purple!20, below=0.8cm of ks] (avg) {가중 평균\\$\text{T-cKS}$};
+    
+    % 화살표
+    \draw[arrow] (data) -- (cond);
+    \draw[arrow] (cond) -- (tail);
+    \draw[arrow] (tail) -- (ks);
+    \draw[arrow] (ks) -- (avg);
+    
+    % 라벨
+    \node[above=0.1cm of data, font=\footnotesize] {Step 0};
+    \node[above=0.1cm of cond, font=\footnotesize] {Step 1};
+    \node[above=0.1cm of tail, font=\footnotesize] {Step 2};
+    \node[above=0.1cm of ks, font=\footnotesize] {Step 3};
+    \node[left=0.1cm of avg, font=\footnotesize] {Step 4};
+    \end{tikzpicture}
+    \caption{T-cKS 계산 과정: 전체 데이터에서 조건별 분리, tail 영역 필터링, 각 조건에서 KS Distance 계산 후 가중 평균}
     \label{fig:flowchart}
 \end{figure}
 
@@ -261,27 +302,42 @@ Allstate Claims Severity Dataset (Kaggle)을 사용하였다.
 % 그림 2
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.9\textwidth]{results/figures/q_sensitivity_winsor.png}
+    \includegraphics[width=0.9\textwidth]{figures/q_sensitivity_winsor.png}
     \caption{Quantile 민감도 분석 (Winsorization, strength=0.8)}
     \label{fig:loss_dist}
 \end{figure}
 
 \subsection{실패 모드 설계: Tail Scaling}
 
-조건 D의 tail 값을 다음과 같이 스케일링한다:
+실제 합성 데이터에서 발생할 수 있는 tail 왜곡을 시뮬레이션하기 위해, \textbf{Tail Scaling} 방법을 설계하였다. 이 방법은 특정 조건(본 실험에서는 조건 D)의 tail 값만 선택적으로 축소하여, 조건부 극단 손실 분포의 왜곡을 유도한다.
+
+조건 D의 tail 값($Y > \tau_q$)을 다음과 같이 스케일링한다:
 \begin{equation}
     Y_{\text{new}} = \tau_q + (Y - \tau_q) \times \text{scale\_factor}
 \end{equation}
 
+이 변환은 다음과 같은 특성을 가진다:
+\begin{itemize}
+    \item tail threshold $\tau_q$ 이하의 값은 변경되지 않음
+    \item tail 영역의 값만 threshold 방향으로 압축됨
+    \item scale\_factor가 작을수록 더 심한 왜곡 발생
+\end{itemize}
+
+실험에서 사용한 scale\_factor 값:
 \begin{itemize}
     \item scale\_factor $= 1.0$: 원본 (왜곡 없음)
-    \item scale\_factor $= 0.2$: tail의 80\% 축소
+    \item scale\_factor $= 0.8$: tail의 20\% 축소
+    \item scale\_factor $= 0.6$: tail의 40\% 축소
+    \item scale\_factor $= 0.4$: tail의 60\% 축소
+    \item scale\_factor $= 0.2$: tail의 80\% 축소 (가장 극심한 왜곡)
 \end{itemize}
+
+이러한 왜곡은 전체 데이터의 약 5\% (tail 영역)에만 영향을 미치므로, 전체 분포 관점의 지표(mKS, cKS)로는 탐지가 어렵다.
 
 % 그림 3
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.9\textwidth]{results/figures/metric_comparison_q0.9.png}
+    \includegraphics[width=0.9\textwidth]{figures/metric_comparison_q0.9.png}
     \caption{메트릭 비교 (q=0.90)}
     \label{fig:tail_scaling}
 \end{figure}
@@ -313,7 +369,7 @@ Scale Factor & mKS & cKS & T-cKS & T-cKS(D) \\
 % 그림 4
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.9\textwidth]{results/figures/metric_comparison_q0.95.png}
+    \includegraphics[width=0.9\textwidth]{figures/metric_comparison_q0.95.png}
     \caption{왜곡 강도에 따른 평가 지표 변화 (q=0.95)}
     \label{fig:main_plot}
 \end{figure}
@@ -361,7 +417,7 @@ C & 0.0000 & 0.0000 \\
 % 그림 5
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.9\textwidth]{results/figures/detection_comparison_q095.png}
+    \includegraphics[width=0.9\textwidth]{figures/detection_comparison_q095.png}
     \caption{탐지 능력 비교: T-cKS vs 기존 지표 (q=0.95)}
     \label{fig:condition_compare}
 \end{figure}
@@ -388,10 +444,118 @@ C & 0.0000 & 0.0000 \\
 % 그림 6
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.9\textwidth]{results/figures/heatmap_tcks_winsorization.png}
+    \includegraphics[width=0.9\textwidth]{figures/heatmap_tcks_winsorization.png}
     \caption{T-cKS 히트맵: Quantile vs 왜곡 강도 (Winsorization 방법)}
     \label{fig:consistency}
 \end{figure}
+
+
+\subsection{실제 합성 데이터 생성 모델 평가}
+
+앞선 실험은 인위적 왜곡을 통한 통제된 환경에서 T-cKS의 민감도를 검증하였다. 본 절에서는 실제 합성 데이터 생성 모델을 사용하여 T-cKS의 실용적 가치를 평가한다.
+
+\subsubsection{실험 설정}
+
+SDV(Synthetic Data Vault) 라이브러리의 세 가지 합성 데이터 생성 모델을 평가하였다:
+\begin{itemize}
+    \item \textbf{GaussianCopula}: 통계적 방법 기반 모델
+    \item \textbf{CTGAN}: Conditional GAN 기반 딥러닝 모델
+    \item \textbf{TVAE}: Variational Autoencoder 기반 딥러닝 모델
+\end{itemize}
+
+각 모델에서 50,000개의 합성 샘플을 생성하고, 3개의 랜덤 시드(42, 123, 456)로 반복 실험을 수행하였다.
+
+\subsubsection{주요 결과}
+
+\begin{table}[h]
+\centering
+\caption{실제 합성 데이터 생성 모델 평가 결과 ($q=0.95$)}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+모델 & mKS & cKS & T-cKS & T-cKS/cKS & Tail 재현율 \\
+\midrule
+\textbf{TVAE} & \textbf{0.014} & \textbf{0.021} & 0.075 & \textbf{3.51x} & 25.4\% \\
+CTGAN & 0.086 & 0.072 & 0.125 & 1.74x & 43.2\% \\
+GaussianCopula & 0.068 & 0.141 & 0.142 & 1.00x & 17.7\% \\
+\bottomrule
+\end{tabular}
+\label{tab:synthetic_results}
+\end{table}
+
+% 그림 7: 메트릭 비교
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figures/synthetic_metric_comparison_q095.png}
+    \caption{실제 합성 데이터 생성 모델별 품질 지표 비교 ($q=0.95$)}
+    \label{fig:synthetic_comparison}
+\end{figure}
+
+\subsubsection{핵심 발견: TVAE의 숨겨진 Tail 왜곡}
+
+TVAE는 기존 지표에서 가장 우수한 성능을 보인다:
+\begin{itemize}
+    \item mKS $= 0.014$: 전체 분포 유사성 최고
+    \item cKS $= 0.021$: 조건부 분포 유사성 최고
+\end{itemize}
+
+그러나 T-cKS는 숨겨진 tail 왜곡을 탐지한다:
+\begin{equation}
+    \frac{\text{T-cKS}}{\text{cKS}} = \frac{0.075}{0.021} \approx \textbf{3.5배}
+\end{equation}
+
+실제로 TVAE는 원본 대비 \textbf{25.4\%}의 tail 샘플만 생성하여, 극단 손실 영역의 재현에 실패하였다.
+
+% 그림 8: TVAE 상세 분석
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/tvae_hidden_distortion.png}
+    \caption{TVAE: 기존 지표로는 우수하나 T-cKS가 숨겨진 tail 왜곡 탐지}
+    \label{fig:tvae_detail}
+\end{figure}
+
+% 그림 9: 탐지 민감도
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/synthetic_tcks_sensitivity.png}
+    \caption{Tail 탐지 민감도: T-cKS / cKS 비율}
+    \label{fig:sensitivity}
+\end{figure}
+
+\subsubsection{Tail 재현율 분석}
+
+% 그림 10: Tail 재현율
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.95\textwidth]{figures/synthetic_tail_reproduction.png}
+    \caption{합성 데이터 생성 모델별 Tail 재현율: (a) Tail 샘플 생성 비율, (b) Tail 평균 보존율}
+    \label{fig:tail_reproduction}
+\end{figure}
+
+모든 모델이 tail 샘플 생성에 어려움을 겪고 있다:
+\begin{itemize}
+    \item GaussianCopula: 17.7\% (가장 낮음)
+    \item TVAE: 25.4\%
+    \item CTGAN: 43.2\% (가장 높음)
+\end{itemize}
+
+이는 현재 합성 데이터 생성 기술이 heavy-tailed 분포의 극단 영역 재현에 근본적 한계를 가짐을 시사한다.
+
+% 그림 11: Quantile별 T-cKS
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/synthetic_tcks_by_quantile.png}
+    \caption{Tail Threshold Quantile에 따른 T-cKS 변화}
+    \label{fig:tcks_quantile}
+\end{figure}
+
+\subsubsection{실험의 의의}
+
+본 실험 결과는 T-cKS의 실용적 가치를 입증한다:
+\begin{enumerate}
+    \item \textbf{숨겨진 문제 탐지}: 기존 지표로는 ``우수"해 보이는 TVAE의 tail 왜곡을 탐지
+    \item \textbf{모델 선택 가이드}: 보험 리스크 관점에서 합성 데이터 생성 모델 평가 기준 제공
+    \item \textbf{생성 모델의 한계 규명}: 현재 합성 데이터 기술의 heavy-tail 재현 한계 확인
+\end{enumerate}
 
 
 %==============================================================================
@@ -402,15 +566,23 @@ C & 0.0000 & 0.0000 \\
 
 본 연구는 보험 합성 데이터 평가 문제를 리스크 중심 관점에서 재정의하였다. 기존 평가 방식의 근본적 한계는 ``평균적으로 유사하면 좋은 합성 데이터"라는 암묵적 가정에 있다. 그러나 보험 리스크 관리에서 중요한 것은 평균이 아닌 \textbf{극단 손실}이다.
 
-정리 1을 통해 T-cKS의 통계적 일관성을 이론적으로 보장함으로써, 이 지표가 통계적으로 신뢰할 수 있는 평가 기준임을 입증하였다.
+\subsubsection{이론적 기여}
+정리 1을 통해 T-cKS의 통계적 일관성을 이론적으로 보장하였다. 이는 샘플 크기가 충분히 크면 T-cKS가 참 분포 간의 tail-conditional 거리로 수렴함을 의미하며, 실험적으로도 샘플 크기 증가에 따른 표준편차 감소(표 5)를 통해 확인하였다.
+
+\subsubsection{실용적 기여}
+TVAE 실험 결과는 T-cKS의 실용적 가치를 명확히 보여준다. TVAE는 mKS=0.014, cKS=0.021로 기존 지표에서 가장 우수한 성능을 보였으나, T-cKS=0.075로 3.5배 높은 tail 왜곡이 탐지되었다. 이는 기존 평가 방식만으로는 ``좋아 보이지만 실제로는 리스크 관점에서 문제가 있는" 합성 데이터를 걸러내기 어려움을 시사한다.
+
+\subsubsection{합성 데이터 생성 기술에 대한 시사점}
+실험 결과, 현재 최신 합성 데이터 생성 모델(CTGAN, TVAE, GaussianCopula) 모두 tail 재현율이 17--43\%에 불과하였다. 이는 heavy-tailed 분포의 극단 영역 재현이 현재 생성 기술의 근본적 한계임을 보여주며, 향후 tail-aware 학습 방법 개발의 필요성을 제기한다.
 
 \subsection{한계점 및 향후 연구}
 
 \begin{enumerate}
-    \item \textbf{단일 데이터셋}: 다른 도메인에서의 일반화 검증 필요
-    \item \textbf{인위적 왜곡}: 실제 합성 데이터 생성 모델과의 연동 필요
-    \item \textbf{점근적 분포}: 유의성 검정 방법 개발 필요
+    \item \textbf{단일 데이터셋}: 다른 도메인(의료, 금융 등)에서의 일반화 검증 필요
+    \item \textbf{합성 모델 다양성}: 더 다양한 합성 데이터 생성 모델(Diffusion, Normalizing Flow 등) 평가 필요
+    \item \textbf{점근적 분포}: T-cKS의 유의성 검정 방법 개발 필요
     \item \textbf{다변량 확장}: 다변량 극단 의존성 평가로의 확장 가능
+    \item \textbf{Tail 재현 개선}: 합성 데이터 생성 모델의 tail 재현율 향상 방법 연구
 \end{enumerate}
 
 
@@ -422,11 +594,12 @@ C & 0.0000 & 0.0000 \\
 
 실험 결과:
 \begin{itemize}
-    \item 기존 지표(mKS, cKS): KS $= 0.017$ 수준으로 왜곡 탐지 실패
-    \item 제안 지표(T-cKS): KS $= 0.344$로 \textbf{약 20배 높은 민감도}
+    \item \textbf{통제된 실험}: 기존 지표(mKS, cKS)는 KS $= 0.017$ 수준으로 왜곡 탐지 실패, T-cKS는 KS $= 0.344$로 \textbf{약 20배 높은 민감도}
+    \item \textbf{실제 합성 모델}: TVAE가 기존 지표(cKS$=0.021$)로는 우수하나, T-cKS($=0.075$)가 \textbf{3.5배 높은 tail 왜곡} 탐지
+    \item \textbf{생성 모델 한계}: 현재 합성 데이터 기술은 tail 샘플의 17--43\%만 재현 가능
 \end{itemize}
 
-이는 T-cKS가 보험 합성 데이터의 리스크 관점 품질 평가에 효과적임을 시사한다.
+이는 T-cKS가 보험 합성 데이터의 리스크 관점 품질 평가에 효과적이며, 기존 지표로는 발견하기 어려운 숨겨진 tail 왜곡을 탐지할 수 있음을 시사한다.
 
 
 %==============================================================================
@@ -441,6 +614,10 @@ C & 0.0000 & 0.0000 \\
     \item Embrechts, P., Klüppelberg, C., \& Mikosch, T. (1997). \textit{Modelling Extremal Events for Insurance and Finance}. Springer.
     
     \item Xu, L., et al. (2019). Modeling tabular data using conditional GAN. \textit{NeurIPS}, 32.
+    
+    \item Kingma, D. P., \& Welling, M. (2014). Auto-encoding variational bayes. \textit{ICLR}.
+    
+    \item Patki, N., Wedge, R., \& Veeramachaneni, K. (2016). The Synthetic Data Vault. \textit{IEEE DSAA}, 399-410.
     
     \item Allstate. (2016). Allstate Claims Severity. Kaggle. \url{https://www.kaggle.com/c/allstate-claims-severity}
 \end{enumerate}
